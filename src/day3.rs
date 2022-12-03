@@ -86,7 +86,6 @@ fn day3_part2(rucksacks: &[Rucksack]) -> u64 {
             rucksack_iter.next().unwrap(),
         ];
         let badge = find_badge(group);
-        println!("badge: {:?}", badge);
         priorities += badge.priority();
     }
 
