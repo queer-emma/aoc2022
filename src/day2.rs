@@ -1,18 +1,18 @@
 use thiserror::Error;
 
 #[derive(Clone, Copy, Debug)]
-enum Play {
+enum Move {
     Rock,
     Paper,
     Scissors,
 }
 
-impl Play {
+impl Move {
     pub fn to_score(&self) -> u64 {
         match self {
-            Play::Rock => 1,
-            Play::Paper => 2,
-            Play::Scissors => 3,
+            Move::Rock => 1,
+            Move::Paper => 2,
+            Move::Scissors => 3,
         }
     }
 }
@@ -42,11 +42,11 @@ enum Column2 {
 }
 
 impl Column2 {
-    pub fn to_play(&self) -> Play {
+    pub fn to_move(&self) -> Move {
         match self {
-            Column2::X => Play::Rock,
-            Column2::Y => Play::Paper,
-            Column2::Z => Play::Scissors,
+            Column2::X => Move::Rock,
+            Column2::Y => Move::Paper,
+            Column2::Z => Move::Scissors,
         }
     }
 
@@ -60,7 +60,7 @@ impl Column2 {
 }
 
 pub struct Round {
-    opponent: Play,
+    opponent: Move,
     mine: Column2,
 }
 
@@ -82,9 +82,9 @@ fn day2_input(input: &str) -> Result<Vec<Round>, RoundParseError> {
             .ok_or_else(|| RoundParseError(line.to_owned()))?;
 
         let opponent = match opponent_str {
-            "A" => Play::Rock,
-            "B" => Play::Paper,
-            "C" => Play::Scissors,
+            "A" => Move::Rock,
+            "B" => Move::Paper,
+            "C" => Move::Scissors,
             _ => return Err(RoundParseError(line.to_owned())),
         };
         let mine = match mine_str {
@@ -105,15 +105,15 @@ fn day2_part1(rounds: &[Round]) -> u64 {
     let mut score = 0;
 
     for round in rounds {
-        let mine = round.mine.to_play();
+        let mine = round.mine.to_move();
         score += mine.to_score();
         let outcome = match (round.opponent, mine) {
-            (Play::Rock, Play::Scissors) => Outcome::Lose,
-            (Play::Rock, Play::Paper) => Outcome::Win,
-            (Play::Paper, Play::Rock) => Outcome::Lose,
-            (Play::Paper, Play::Scissors) => Outcome::Win,
-            (Play::Scissors, Play::Rock) => Outcome::Win,
-            (Play::Scissors, Play::Paper) => Outcome::Lose,
+            (Move::Rock, Move::Scissors) => Outcome::Lose,
+            (Move::Rock, Move::Paper) => Outcome::Win,
+            (Move::Paper, Move::Rock) => Outcome::Lose,
+            (Move::Paper, Move::Scissors) => Outcome::Win,
+            (Move::Scissors, Move::Rock) => Outcome::Win,
+            (Move::Scissors, Move::Paper) => Outcome::Lose,
             _ => Outcome::Draw,
         };
         score += outcome.to_score();
@@ -129,12 +129,12 @@ fn day2_part2(rounds: &[Round]) -> u64 {
     for round in rounds {
         let outcome = round.mine.to_outcome();
         let mine = match (outcome, round.opponent) {
-            (Outcome::Win, Play::Rock) => Play::Paper,
-            (Outcome::Win, Play::Paper) => Play::Scissors,
-            (Outcome::Win, Play::Scissors) => Play::Rock,
-            (Outcome::Lose, Play::Rock) => Play::Scissors,
-            (Outcome::Lose, Play::Paper) => Play::Rock,
-            (Outcome::Lose, Play::Scissors) => Play::Paper,
+            (Outcome::Win, Move::Rock) => Move::Paper,
+            (Outcome::Win, Move::Paper) => Move::Scissors,
+            (Outcome::Win, Move::Scissors) => Move::Rock,
+            (Outcome::Lose, Move::Rock) => Move::Scissors,
+            (Outcome::Lose, Move::Paper) => Move::Rock,
+            (Outcome::Lose, Move::Scissors) => Move::Paper,
             (Outcome::Draw, opponent) => opponent,
         };
         score += mine.to_score();

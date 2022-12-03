@@ -1,5 +1,3 @@
-use std::num::ParseIntError;
-
 #[aoc_generator(day1)]
 fn day1_input(input: &str) -> Vec<Vec<u32>> {
     let mut calories = Vec::new();

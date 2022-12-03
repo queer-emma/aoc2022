@@ -8,5 +8,3 @@ authors = ["Emma <queer_emma@protonmail.com>"]
 aoc-runner = "0.3"
 aoc-runner-derive = "0.3"
 thiserror = "1.0"
-pretty_env_logger = "0.4"
-log = "0.4"
