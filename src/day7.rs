@@ -1,7 +1,10 @@
 use std::{
     cell::RefCell,
     collections::HashMap,
-    rc::Rc,
+    rc::{
+        Rc,
+        Weak,
+    },
 };
 
 #[derive(Debug)]
@@ -11,12 +14,12 @@ enum LsEntry {
 }
 
 #[derive(Debug)]
-pub enum Command {
+enum Command {
     Ls { files: Vec<LsEntry> },
     Cd { path: String },
 }
 
-pub enum FsNode {
+enum FsNode {
     File {
         name: String,
         file_size: u64,
@@ -25,7 +28,7 @@ pub enum FsNode {
     Directory {
         name: String,
         files: RefCell<HashMap<String, Rc<FsNode>>>,
-        parent: Option<Rc<FsNode>>,
+        parent: Option<Weak<FsNode>>,
         total_size: RefCell<u64>,
     },
 }
@@ -33,10 +36,15 @@ pub enum FsNode {
 impl FsNode {
     pub fn parent(&self) -> Rc<FsNode> {
         match self {
-            FsNode::File { parent, .. } => parent,
-            FsNode::Directory { parent, .. } => parent.as_ref().expect("no parent directory"),
+            FsNode::File { parent, .. } => parent.clone(),
+            FsNode::Directory { parent, .. } => {
+                parent
+                    .as_ref()
+                    .expect("no parent directory")
+                    .upgrade()
+                    .unwrap()
+            }
         }
-        .clone()
     }
 
     pub fn total_size(&self) -> u64 {
@@ -57,10 +65,7 @@ impl FsNode {
         match self {
             FsNode::File { file_size, .. } => *file_size,
             FsNode::Directory {
-                name,
-                files,
-                parent,
-                total_size,
+                files, total_size, ..
             } => {
                 let mut total = 0;
 
@@ -78,16 +83,9 @@ impl FsNode {
         let mut total = 0;
 
         match self {
-            FsNode::File {
-                name,
-                file_size,
-                parent,
-            } => {}
+            FsNode::File { .. } => {}
             FsNode::Directory {
-                name,
-                files,
-                parent,
-                total_size,
+                files, total_size, ..
             } => {
                 let size = *total_size.borrow();
                 if size < 100000 {
@@ -104,13 +102,9 @@ impl FsNode {
 
     pub fn find_smallest_above(self: Rc<Self>, above_size: u64) -> Option<Rc<FsNode>> {
         match self.as_ref() {
-            FsNode::File {
-                ..
-            } => {}
+            FsNode::File { .. } => {}
             FsNode::Directory {
-                files,
-                total_size,
-                ..
+                files, total_size, ..
             } => {
                 let mut min_dir: Option<Rc<FsNode>> = None;
 
@@ -142,7 +136,7 @@ impl FsNode {
 }
 
 fn build_fs_from_commands(commands: &[Command]) -> Rc<FsNode> {
-    let mut root = Rc::new(FsNode::Directory {
+    let root = Rc::new(FsNode::Directory {
         name: "/".to_owned(),
         files: RefCell::new(HashMap::new()),
         parent: None,
@@ -167,7 +161,7 @@ fn build_fs_from_commands(commands: &[Command]) -> Rc<FsNode> {
                                         Rc::new(FsNode::Directory {
                                             name: name.to_string(),
                                             files: RefCell::new(HashMap::new()),
-                                            parent: Some(current.clone()),
+                                            parent: Some(Rc::downgrade(&current)),
                                             total_size: RefCell::new(0),
                                         }),
                                     );
@@ -203,7 +197,7 @@ fn build_fs_from_commands(commands: &[Command]) -> Rc<FsNode> {
                                 let dir = Rc::new(FsNode::Directory {
                                     name: path.to_string(),
                                     files: RefCell::new(HashMap::new()),
-                                    parent: Some(current.clone()),
+                                    parent: Some(Rc::downgrade(&current)),
                                     total_size: RefCell::new(0),
                                 });
                                 files.insert(path.to_string(), dir.clone());
@@ -284,6 +278,10 @@ fn day7_part2(fs: &Rc<FsNode>) -> u64 {
     println!("need_to_free: {}", need_to_free);
 
     let smallest_dir = fs.clone().find_smallest_above(need_to_free).unwrap();
-    println!("smallest dir: {} {}", smallest_dir.name(), smallest_dir.total_size());
+    println!(
+        "smallest dir: {} {}",
+        smallest_dir.name(),
+        smallest_dir.total_size()
+    );
     smallest_dir.total_size()
 }
