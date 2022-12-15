@@ -205,13 +205,13 @@ fn day14_part1(rock_paths: &RockPaths) -> usize {
     let mut sandbox = Sandbox::from_rock_paths(rock_paths, false);
     let mut num_sand = 0;
 
-    sandbox.print();
+    //sandbox.print();
 
     while sandbox.simulate_sand_particle() != SimulationOutcome::SandFellIntoVoid {
         num_sand += 1;
 
-        println!("sand particles: {}", num_sand);
-        sandbox.print();
+        //println!("sand particles: {}", num_sand);
+        //sandbox.print();
     }
 
     num_sand
@@ -222,14 +222,14 @@ fn day14_part2(rock_paths: &RockPaths) -> usize {
     let mut sandbox = Sandbox::from_rock_paths(rock_paths, true);
     let mut num_sand = 0;
 
-    sandbox.print();
+    //sandbox.print();
 
     while sandbox.simulate_sand_particle() != SimulationOutcome::SourceBlocked {
         num_sand += 1;
     }
 
-    println!("sand particles: {}", num_sand);
-    sandbox.print();
+    //println!("sand particles: {}", num_sand);
+    //sandbox.print();
 
     num_sand
 }
